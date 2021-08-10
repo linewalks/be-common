@@ -37,9 +37,7 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 CORS(app)
 
-from main.controllers.auth.user import *
-
-from .controllers.auth import auth_bp
+from main.controllers.auth import auth_bp
 blueprints = [
   auth_bp
 ]
