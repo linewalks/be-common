@@ -17,11 +17,6 @@ class RequestLoginSchema(Schema):
   password = fields.Str(required=True)
 
 
-class RequestEmailVerification(Schema):
-  email = fields.Str()
-  token = fields.Str()
-
-
 # Response
 class ResponseBodySchema(Schema):
   skeleton = fields.Nested(RequestBodySchema)
