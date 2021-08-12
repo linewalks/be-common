@@ -15,6 +15,10 @@ from flask_apispec.extension import FlaskApiSpec
 app = Flask(__name__)
 base_dir = os.getcwd()
 app.config.from_pyfile(f"{base_dir}/main/default.cfg")
+app.config["SQLALCHEMY_BINDS"] = {
+    "test": app.config["TEST_DATABASE_URI"],
+    "synthea": app.config["SYNTHEA_DATABASE_URI"]
+}
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config.update({
     "APISPEC_SPEC": APISpec(
