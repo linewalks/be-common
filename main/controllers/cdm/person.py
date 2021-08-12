@@ -96,6 +96,11 @@ person_list: 환자 수 정보가 들어갈 리스트
 </pre>
 """)
 def ethnicity_count():
+  """
+  ethnicitiy_concept_id의 모든 값이 0이다.
+  concept 테이블을 조회하니 유효하지 않는 값이라고 나온다.
+  부득이하게 대체 값인 ethnicity_source_value를 사용한다.
+  """
   query = Person.person_group_by_ethnicity()
   return {
       "person_list": convert_query_to_response(
