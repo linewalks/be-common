@@ -44,9 +44,10 @@ CORS(app)
 
 # blueprint 추가
 from main.controllers.auth import auth_bp
+from main.controllers.cdm import cdm_bp
 from main.controllers import skeleton_bp
 
-blueprints = [auth_bp, skeleton_bp]
+blueprints = [auth_bp, cdm_bp, skeleton_bp]
 
 for bp in blueprints:
   app.register_blueprint(bp)
@@ -58,5 +59,3 @@ for key, value in docs.spec._paths.items():
   docs.spec._paths[key] = {
       inner_key: inner_value for inner_key, inner_value in value.items() if inner_key != "options"
   }
-
-db.create_all()  # DB 없으면 생성

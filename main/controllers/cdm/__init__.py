@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-auth_bp = Blueprint("cdm", __name__, url_prefix="/cdm_api")
+cdm_bp = Blueprint("cdm", __name__, url_prefix="/cdm_api")
 
 API_CATEGORY = "Cdm"
 

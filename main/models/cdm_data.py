@@ -1,6 +1,8 @@
 from main import app, db
+from sqlalchemy import func, text
 
 
+# 생각해보니 굳이 Class가 아니어도 될 거 같긴 하다.
 class Person(db.Model):
   """
   환자 수를 조회하기 위한 class
@@ -15,12 +17,20 @@ class Person(db.Model):
   __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
   __bind_key__ = "synthea"
   person_id = db.Column(db.Integer, primary_key=True)
-  gender_concept_id = db.Column(db.Integer)
+  gender_concept_id = db.Column(
+      db.Integer,
+      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
+      nullable=True
+  )
   year_of_birth = db.Column(db.Integer)
   month_of_birth = db.Column(db.Integer)
   day_of_birth = db.Column(db.Integer)
   birth_datetime = db.Column(db.DateTime)
-  race_concept_id = db.Column(db.Integer)
+  race_concept_id = db.Column(
+      db.Integer,
+      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
+      nullable=True
+  )
   ethnicity_concept_id = db.Column(db.Integer)
   location_id = db.Column(db.Integer)
   provider_id = db.Column(db.Integer)
@@ -33,11 +43,31 @@ class Person(db.Model):
   ethnicity_source_value = db.Column(db.String(50))
   ethnicity_source_concept_id = db.Column(db.Integer)
 
-  def __init__(self, **kwargs):
-    super().__init__(**kwargs)
+  @staticmethod
+  def person_gorup_by_condtion(target_col):
+    target_col = text(f"{app.config['SCHEMA_SYNTHEA']}.person.{target_col}")
+    query = db.session.query(
+        target_col,
+        Concept.concept_name,
+        func.count(Person.person_id)
+    ).join(
+        Concept,
+        Concept.concept_id == target_col
+    ).group_by(
+        target_col,
+        Concept.concept_name
+    )
+    return query
 
-  def __repr__(self):
-    return f"<Person {self.person_id}>"
+  @staticmethod
+  def person_group_by_ethnicity():
+    query = db.session.query(
+        Person.ethnicity_source_value,
+        func.count(Person.ethnicity_source_value)
+    ).group_by(
+        Person.ethnicity_source_value
+    )
+    return query
 
 
 class Visit(db.Model):
@@ -70,12 +100,6 @@ class Visit(db.Model):
   discharge_to_concept_id = db.Column(db.Integer)
   preceding_visit_occurence_id = db.Column(db.Integer)
 
-  def __init__(self, **kwargs):
-    super().__init__(**kwargs)
-
-  def __repr__(self):
-    return f"<Visit {self.visit_occurrence_id}>"
-
 
 class Concept(db.Model):
   """
@@ -99,11 +123,34 @@ class Concept(db.Model):
   valid_end_date = db.Column(db.Date)
   invalid_reason = db.Column(db.String(1))
 
-  def __init__(self, **kwargs):
-    super().__init__(**kwargs)
 
-  def __repr__(self):
-    return f"<Concept {self.concept_id}>"
+class Death(db.Model):
+  """
+  사망자에 대한 정보를 모아둔 death 테이블과 연결된 class
+  """
+  __tablename__ = "death"
+  __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
+  __bind_key__ = "synthea"
+  person_id = db.Column(
+      db.Integer,
+      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.person.person_id", ondelete="SET NULL"),
+      nullable=True,
+      primary_key=True
+  )
+  death_date = db.Column(db.Date)
+  death_datetime = db.Column(db.DateTime)
+  death_type_concept_id = db.Column(db.Integer)
+  cause_concept_id = db.Column(
+      db.Integer,
+      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
+      nullable=True
+  )
+  cause_source_value = db.Column(db.Integer)
+  cause_source_concept_id = db.Column(
+      db.Integer,
+      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
+      nullable=True
+  )
 
 
 class Search():
