@@ -1,7 +1,6 @@
+from flask import Blueprint
 from main.models.utils import convert_query_to_response
 from flask_apispec import marshal_with, doc
-# main에서 cdm 호출 후 cdm에서 person 호출
-from main.controllers.cdm import cdm_bp, API_CATEGORY
 from main import db
 from main.schema.cdm_schema import (
     PersonCount,
@@ -10,8 +9,12 @@ from main.schema.cdm_schema import (
 )
 from main.models.cdm_data import Death, Person
 
+person_bp = Blueprint("person", __name__, url_prefix="/person")
 
-@cdm_bp.route("/person", methods=["GET"])
+API_CATEGORY = "Person"
+
+
+@person_bp.route("/", methods=["GET"])
 @doc(tags=[API_CATEGORY],
      summary="컬럼 설명",
      description="환자 수 조회를 위한 파라미터를 설명합니다.")
@@ -25,7 +28,7 @@ def index():
   }, 200)
 
 
-@cdm_bp.route("/person/all", methods=["GET"])
+@person_bp.route("/all", methods=["GET"])
 @marshal_with(PersonCount, description="""
 <pre>
 person_count: 전체 환자 수
@@ -40,7 +43,7 @@ def all_count():
   }
 
 
-@cdm_bp.route("/person/gender", methods=["GET"])
+@person_bp.route("/gender", methods=["GET"])
 @doc(tags=[API_CATEGORY],
      summary="성별 환자 수 조회",
      description="성별 환자 수를 조회합니다.")
@@ -63,7 +66,7 @@ def gender_count():
   }
 
 
-@cdm_bp.route("/person/race", methods=["GET"])
+@person_bp.route("/race", methods=["GET"])
 @doc(tags=[API_CATEGORY],
      summary="인종별 환자 수 조회",
      description="인종별 환자 수를 조회합니다.")
@@ -85,7 +88,7 @@ def race_count():
   }
 
 
-@cdm_bp.route("/person/ethnicity", methods=["GET"])
+@person_bp.route("/ethnicity", methods=["GET"])
 @doc(tags=[API_CATEGORY],
      summary="민족별 환자 수 조회",
      description="민족별 환자 수를 조회합니다.")
@@ -111,7 +114,7 @@ def ethnicity_count():
   }
 
 
-@cdm_bp.route("/person/death", methods=["GET"])
+@person_bp.route("/death", methods=["GET"])
 @doc(tags=[API_CATEGORY],
      summary="사망 환자 수 조회",
      description="사망 환자 수를 조회합니다.")

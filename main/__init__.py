@@ -47,7 +47,8 @@ from main.controllers.auth import auth_bp
 from main.controllers.cdm import cdm_bp
 from main.controllers import skeleton_bp
 
-blueprints = [auth_bp, cdm_bp, skeleton_bp]
+blueprints = [auth_bp, skeleton_bp]
+blueprints.extend(cdm_bp)
 
 for bp in blueprints:
   app.register_blueprint(bp)
