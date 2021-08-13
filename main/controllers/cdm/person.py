@@ -10,6 +10,7 @@ from main.schema.cdm_schema import (
 )
 from main.models.cdm_data import Death, Person
 
+
 @cdm_bp.route("/person", methods=["GET"])
 @doc(tags=[API_CATEGORY],
      summary="컬럼 설명",

@@ -1,5 +1,5 @@
 from main import app, db
-from sqlalchemy import func, text
+from sqlalchemy import func
 
 
 # 생각해보니 굳이 Class가 아니어도 될 거 같긴 하다.
@@ -17,20 +17,12 @@ class Person(db.Model):
   __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
   __bind_key__ = "synthea"
   person_id = db.Column(db.Integer, primary_key=True)
-  gender_concept_id = db.Column(
-      db.Integer,
-      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
-      nullable=True
-  )
+  gender_concept_id = db.Column(db.Integer)
   year_of_birth = db.Column(db.Integer)
   month_of_birth = db.Column(db.Integer)
   day_of_birth = db.Column(db.Integer)
   birth_datetime = db.Column(db.DateTime)
-  race_concept_id = db.Column(
-      db.Integer,
-      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
-      nullable=True
-  )
+  race_concept_id = db.Column(db.Integer)
   ethnicity_concept_id = db.Column(db.Integer)
   location_id = db.Column(db.Integer)
   provider_id = db.Column(db.Integer)
@@ -43,13 +35,23 @@ class Person(db.Model):
   ethnicity_source_value = db.Column(db.String(50))
   ethnicity_source_concept_id = db.Column(db.Integer)
 
-  @staticmethod
-  def person_gorup_by_condtion(target_col):
-    target_col = text(f"{app.config['SCHEMA_SYNTHEA']}.person.{target_col}")
+  @classmethod
+  def person_gorup_by_condtion(cls, target_col):
+    """
+    getattr(cls, target_col) => Person.gender_concept_id
+      Person class에서 정의된 컬럼를 사용한다.
+
+    cls.__table__.c[target_col] => person.gender_concept_id
+      person.gender_concept_id라는 sql context가 된다.
+
+    Person class 내부에서 컬럼을 사용할 때 여러 조건들을 추가할 수 있으므로
+    getattr를 사용하는게 나을 것 같다.
+    """
+    target_col = getattr(cls, target_col)
     query = db.session.query(
         target_col,
         Concept.concept_name,
-        func.count(Person.person_id)
+        func.count(cls.person_id)
     ).join(
         Concept,
         Concept.concept_id == target_col
@@ -59,13 +61,13 @@ class Person(db.Model):
     )
     return query
 
-  @staticmethod
-  def person_group_by_ethnicity():
+  @classmethod
+  def person_group_by_ethnicity(cls):
     query = db.session.query(
-        Person.ethnicity_source_value,
-        func.count(Person.ethnicity_source_value)
+        cls.ethnicity_source_value,
+        func.count(cls.ethnicity_source_value)
     ).group_by(
-        Person.ethnicity_source_value
+        cls.ethnicity_source_value
     )
     return query
 
@@ -131,26 +133,13 @@ class Death(db.Model):
   __tablename__ = "death"
   __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
   __bind_key__ = "synthea"
-  person_id = db.Column(
-      db.Integer,
-      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.person.person_id", ondelete="SET NULL"),
-      nullable=True,
-      primary_key=True
-  )
+  person_id = db.Column(db.Integer, primary_key=True)
   death_date = db.Column(db.Date)
   death_datetime = db.Column(db.DateTime)
   death_type_concept_id = db.Column(db.Integer)
-  cause_concept_id = db.Column(
-      db.Integer,
-      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
-      nullable=True
-  )
+  cause_concept_id = db.Column(db.Integer)
   cause_source_value = db.Column(db.Integer)
-  cause_source_concept_id = db.Column(
-      db.Integer,
-      db.ForeignKey(f"{app.config['SCHEMA_SYNTHEA']}.concept.concept_id", ondelete="SET NULL"),
-      nullable=True
-  )
+  cause_source_concept_id = db.Column(db.Integer)
 
 
 class Search():
