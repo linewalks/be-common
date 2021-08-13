@@ -153,14 +153,16 @@ class Visit(db.Model):
 
   @classmethod
   def visit_group_by_age_group(cls):
+    age = cast(extract("year", cls.visit_start_date) - extract("year", Person.birth_datetime), Integer)
+    age_group = age / 10 * 10
     query = db.session.query(
-        (cast(extract("year", cls.visit_start_date) - extract("year", Person.birth_datetime), Integer) / 10) * 10,
+        age_group,
         func.count(cls.visit_occurrence_id)
     ).join(
         Person,
         Person.person_id == cls.person_id
     ).group_by(
-        (cast(extract("year", cls.visit_start_date) - extract("year", Person.birth_datetime), Integer) / 10) * 10
+        age_group
     )
     return query
 
