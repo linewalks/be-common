@@ -1,5 +1,5 @@
 from main import app, db
-from sqlalchemy import func
+from sqlalchemy import cast, Integer, func, extract
 
 
 # 생각해보니 굳이 Class가 아니어도 될 거 같긴 하다.
@@ -82,11 +82,12 @@ class Visit(db.Model):
   GET 민족별 방문 수
   GET 방문시 연령대(10세 단위)별 방문 수
   """
-  __tablename__ = "visit_occcurence"
+  __tablename__ = "visit_occurrence"
   __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
   __bind_key__ = "synthea"
   visit_occurrence_id = db.Column(db.Integer, primary_key=True)
   person_id = db.Column(db.Integer)
+  visit_concept_id = db.Column(db.Integer)
   visit_start_date = db.Column(db.Date)
   visit_start_datetime = db.Column(db.DateTime)
   visit_end_date = db.Column(db.Date)
@@ -100,7 +101,68 @@ class Visit(db.Model):
   admitted_from_source_value = db.Column(db.String(50))
   discharge_to_source_value = db.Column(db.String(50))
   discharge_to_concept_id = db.Column(db.Integer)
-  preceding_visit_occurence_id = db.Column(db.Integer)
+  preceding_visit_occurrence_id = db.Column(db.Integer)
+
+
+  @classmethod
+  def visit_gorup_by_visit_type(cls):
+    query = db.session.query(
+        cls.visit_concept_id,
+        Concept.concept_name,
+        func.count(cls.visit_occurrence_id)
+    ).join(
+        Concept,
+        Concept.concept_id == cls.visit_concept_id
+    ).group_by(
+        cls.visit_concept_id,
+        Concept.concept_name
+    )
+    return query
+
+  @classmethod
+  def visit_gorup_by_condtion(cls, target_col):
+    target_col = getattr(Person, target_col)
+    query = db.session.query(
+        target_col,
+        Concept.concept_name,
+        func.count(cls.visit_occurrence_id)
+    ).join(
+        Person,
+        Person.person_id == cls.person_id
+    ).join(
+        Concept,
+        Concept.concept_id == target_col
+    ).group_by(
+        target_col,
+        Concept.concept_name
+    )
+    return query
+
+  @classmethod
+  def visit_group_by_ethnicity(cls):
+    query = db.session.query(
+        Person.ethnicity_source_value,
+        func.count(cls.visit_occurrence_id)
+    ).join(
+        Person,
+        Person.person_id == cls.person_id
+    ).group_by(
+        Person.ethnicity_source_value
+    )
+    return query
+
+  @classmethod
+  def visit_group_by_age_group(cls):
+    query = db.session.query(
+        (cast(extract("year", cls.visit_start_date) - extract("year", Person.birth_datetime), Integer) / 10) * 10,
+        func.count(cls.visit_occurrence_id)
+    ).join(
+        Person,
+        Person.person_id == cls.person_id
+    ).group_by(
+        (cast(extract("year", cls.visit_start_date) - extract("year", Person.birth_datetime), Integer) / 10) * 10
+    )
+    return query
 
 
 class Concept(db.Model):
