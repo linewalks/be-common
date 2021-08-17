@@ -166,27 +166,61 @@ class Visit(db.Model):
     return query
 
 
-class Concept(db.Model):
+class Condition(db.Model):
   """
-  각 테이블에 사용된 concept_id를 조회하기 위한 class
-
-  with Pagination
-  GET 검색 기능 - 키워드 검색
-  Search class의 메소드 사용
+  진단(병명)에 대한 정보를 모아둔 condition_occurrence 테이블과 연결된 class
   """
-  __tablename__ = "concept"
+  __tablename__ = "condition_occurrence"
   __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
   __bind_key__ = "synthea"
-  concept_id = db.Column(db.Integer, primary_key=True)
-  concept_name = db.Column(db.String(255))
-  domain_id = db.Column(db.String(20))
-  vocabulary_id = db.Column(db.String(20))
-  concept_class_id = db.Column(db.String(20))
-  standard_concept = db.Column(db.String(1))
-  concept_code = db.Column(db.String(50))
-  valid_start_date = db.Column(db.Date)
-  valid_end_date = db.Column(db.Date)
-  invalid_reason = db.Column(db.String(1))
+  condition_occurrence_id = db.Column(db.Integer, primary_key=True)
+  person_id = db.Column(db.Integer)
+  condition_concept_id = db.Column(db.Integer)
+  condition_start_date = db.Column(db.Date)
+  condition_start_datetime = db.Column(db.DateTime)
+  condition_end_date = db.Column(db.Date)
+  condition_end_datetime = db.Column(db.DateTime)
+  condition_type_concept_id = db.Column(db.Integer)
+  condition_status_concept_id = db.Column(db.Integer)
+  stop_reason = db.Column(db.String(20))
+  provider_id = db.Column(db.Integer)
+  visit_occurrence_id = db.Column(db.Integer)
+  visit_detail_id = db.Column(db.Integer)
+  condition_source_value = db.Column(db.String(50))
+  condition_source_concept_id = db.Column(db.Integer)
+  condition_status_source_value = db.Column(db.String(50))
+
+
+class Drug(db.Model):
+  """
+  의약품 처방에 대한 정보를 모아둔 drug_exposure 테이블과 연결된 class
+  """
+  __tablename__ = "drug_exposure"
+  __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
+  __bind_key__ = "synthea"
+  drug_exposure_id = db.Column(db.Integer, primary_key=True)
+  person_id = db.Column(db.Integer)
+  drug_concept_id = db.Column(db.Integer)
+  drug_exposure_start_date = db.Column(db.Date)
+  drug_exposure_start_datetime = db.Column(db.DateTime)
+  drug_exposure_end_date = db.Column(db.Date)
+  drug_exposure_end_datetime = db.Column(db.DateTime)
+  verbatim_end_date = db.Column(db.Date)
+  drug_type_concept_id = db.Column(db.Integer)
+  stop_reason = db.Column(db.String(20))
+  refills = db.Column(db.Integer)
+  quantity = db.Column(db.Numeric)
+  days_supply = db.Column(db.Integer)
+  sig = db.Column(db.Text)
+  route_concept_id = db.Column(db.Integer)
+  lot_number = db.Column(db.String(50))
+  provider_id = db.Column(db.Integer)
+  visit_occurrence_id = db.Column(db.Integer)
+  visit_detail_id = db.Column(db.Integer)
+  drug_source_value = db.Column(db.String(50))
+  drug_source_concept_id = db.Column(db.Integer)
+  route_source_value = db.Column(db.String(50))
+  dose_unit_source_value = db.Column(db.String(50))
 
 
 class Death(db.Model):
@@ -214,4 +248,81 @@ class Search():
   with pagination
   GET 특정 컬럼 검색 기능 - 키워드 검색
   """
-  pass
+  keyword_to_table = {
+      "gender": (Person, Person.person_id),
+      "race": (Person, Person.person_id),
+      "visit": (Visit, Visit.visit_occurrence_id),
+      "visit_type": (Visit, Visit.visit_occurrence_id),
+      "condition": (Condition, Condition.condition_occurrence_id),
+      "condition_type": (Condition, Condition.condition_occurrence_id),
+      "drug": (Drug, Drug.drug_exposure_id),
+      "drug_type": (Drug, Drug.drug_exposure_id),
+      "death_type": (Death, Death.person_id)
+  }
+
+  @classmethod
+  def search(cls, keyword):
+    table, primary_col = cls.keyword_to_table[keyword]
+    target_col = getattr(table, f"{keyword}_concept_id")
+    query = db.session.query(
+        target_col,
+        Concept.concept_name,
+        func.count(primary_col)
+    ).join(
+        Concept,
+        Concept.concept_id == target_col
+    ).group_by(
+        target_col,
+        Concept.concept_name
+    ).order_by(
+        func.count(primary_col).desc()
+    )
+    return query
+
+
+class Concept(db.Model):
+  """
+  각 테이블에 사용된 concept_id를 조회하기 위한 class
+
+  person-
+    gender_concept_id: 성별
+    race_concept_id: 인종
+
+  visit_occurrence-
+    visit_concept_id: 방문 유형
+    visit_type_concept_id:
+
+  condition_occurrence-
+    condition_concet_id: 진단(병명)
+    condition_type_concept_id
+
+  drug_exposure-
+    drug_concept_id: 처방 의약품
+    drug_type_concept_id:
+
+  death-
+    death_type_concept_id
+
+  with Pagination
+  GET 검색 기능 - 키워드 검색
+  Search class의 메소드 사용
+  """
+  __tablename__ = "concept"
+  __table_args__ = {"schema": app.config["SCHEMA_SYNTHEA"]}
+  __bind_key__ = "synthea"
+  concept_id = db.Column(db.Integer, primary_key=True)
+  concept_name = db.Column(db.String(255))
+  domain_id = db.Column(db.String(20))
+  vocabulary_id = db.Column(db.String(20))
+  concept_class_id = db.Column(db.String(20))
+  standard_concept = db.Column(db.String(1))
+  concept_code = db.Column(db.String(50))
+  valid_start_date = db.Column(db.Date)
+  valid_end_date = db.Column(db.Date)
+  invalid_reason = db.Column(db.String(1))
+
+  @classmethod
+  def get_top_concept_by_keyword(cls, keyword, page=1, page_cnt=10):
+    page = max(1, page)
+    query = Search.search(keyword)
+    return query.slice((page - 1) * page_cnt, page * page_cnt)
