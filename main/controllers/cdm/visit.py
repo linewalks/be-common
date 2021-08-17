@@ -1,13 +1,13 @@
-from main.models.utils import convert_query_to_response
 from flask import Blueprint
-from flask_apispec import marshal_with, doc
+from flask_apispec import doc, marshal_with
 from main import db
+from main.models.cdm_data import Visit
+from main.models.utils import convert_query_to_response
 from main.schema.cdm_schema import (
     VisitCount,
     ResponseConceptVisitCount,
     ResponseSourceVisitCount
 )
-from main.models.cdm_data import Visit
 
 visit_bp = Blueprint("visit", __name__, url_prefix="/visit")
 
