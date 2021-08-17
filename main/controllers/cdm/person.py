@@ -1,13 +1,13 @@
 from flask import Blueprint
 from flask_apispec import doc, marshal_with
 from main import db
+from main.models.cdm_data import Death, Person
+from main.models.utils import convert_query_to_response
 from main.schema.cdm_schema import (
     PersonCount,
     ResponseConceptPersonCount,
     ResponseSourcePersonCount
 )
-from main.models.cdm_data import Death, Person
-from main.models.utils import convert_query_to_response
 
 person_bp = Blueprint("person", __name__, url_prefix="/person")
 
