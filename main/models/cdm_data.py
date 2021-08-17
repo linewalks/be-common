@@ -1,5 +1,5 @@
+from sqlalchemy import cast, func, extract, Integer
 from main import app, db
-from sqlalchemy import cast, Integer, func, extract
 
 
 # 생각해보니 굳이 Class가 아니어도 될 거 같긴 하다.
@@ -102,7 +102,6 @@ class Visit(db.Model):
   discharge_to_source_value = db.Column(db.String(50))
   discharge_to_concept_id = db.Column(db.Integer)
   preceding_visit_occurrence_id = db.Column(db.Integer)
-
 
   @classmethod
   def visit_gorup_by_visit_type(cls):
