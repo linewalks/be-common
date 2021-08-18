@@ -57,7 +57,7 @@ def all_count():
     description="성별 환자 수를 조회합니다."
 )
 @marshal_with(
-    ResponseConceptPersonCount("person_list"),
+    ResponseConceptPersonCount,
     description="""
     <pre>
     person_list: 환자 수 정보가 들어갈 리스트
@@ -84,7 +84,7 @@ def gender_count():
     description="인종별 환자 수를 조회합니다."
 )
 @marshal_with(
-    ResponseConceptPersonCount("person_list"),
+    ResponseConceptPersonCount,
     description="""
     <pre>
     person_list: 환자 수 정보가 들어갈 리스트
@@ -111,7 +111,7 @@ def race_count():
     description="민족별 환자 수를 조회합니다."
 )
 @marshal_with(
-    ResponseSourcePersonCount("person_list"),
+    ResponseSourcePersonCount,
     description="""
     <pre>
     person_list: 환자 수 정보가 들어갈 리스트

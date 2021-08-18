@@ -1,11 +1,15 @@
 from marshmallow import fields, Schema
+from main.models.common.common import (
+    create_pagination_list_schema,
+    RequestPagination
+)
 
 
 # Request
-class RequestSearch(Schema):
-  keyword = fields.Str(description="검색할 키워드입니다.")
-  page = fields.Int(description="page index 입니다.")
-  page_cnt = fields.Int(description="한 page 당 item의 개수입니다.")
+class RequestSearch(RequestPagination):
+  keyword = fields.Str(description="검색할 키워드입니다.", missing="")
+  order_key = fields.Str(description="정렬의 기준이 될 컬럼입니다.", missing=None)
+  desc = fields.Int(description="정렬 방식을 말합니다. (0: 오름차순, 1: 내림차순)", missing=0)
 
 
 # Response
@@ -20,6 +24,15 @@ class VisitCount(Schema):
 class Concept(Schema):
   concept_id = fields.Int(description="Concept ID")
   concept_name = fields.Str(description="Concept 이름")
+
+
+class ConceptInfo(Schema):
+  concept_id = fields.Int()
+  concept_name = fields.Str()
+  domain_id = fields.Str()
+  vocabulary_id = fields.Str()
+  concept_class_id = fields.Str()
+  standard_concept = fields.Str()
 
 
 class Source(Schema):
@@ -46,48 +59,24 @@ class SourceVisitCount(Source, VisitCount):
   pass
 
 
-class ConceptSearchCount(Concept, Search):
+class ConceptSearchCount(ConceptInfo, Search):
   pass
 
 
-def create_nested_list_schema(root_name, schema, name):
+class ResponseConceptPageSchema(Schema):
+  concept_info = fields.List(fields.Nested(ConceptInfo, required=True))
+
+
+def create_nested_list_schema(root_name, schema):
+  schema_name = root_name.split("_")[0].capitalize()
+  schema_name = f"Response{schema_name}Count"
   return Schema.from_dict({
       root_name: fields.List(fields.Nested(schema))
-  }, name=name)
+  }, name=schema_name)
 
 
-def create_concept_person_count_list_schema(root_name):
-  schema_name = root_name.split("_")[0].capitalize()
-  schema_name = f"Response{schema_name}Count"
-  return create_nested_list_schema(root_name, ConceptPersonCount, schema_name)
-
-
-def create_source_person_count_list_schema(root_name):
-  schema_name = root_name.split("_")[0].capitalize()
-  schema_name = f"Response{schema_name}Count"
-  return create_nested_list_schema(root_name, SourcePersonCount, schema_name)
-
-
-def create_concept_visit_count_list_schema(root_name):
-  schema_name = root_name.split("_")[0].capitalize()
-  schema_name = f"Response{schema_name}Count"
-  return create_nested_list_schema(root_name, ConceptVisitCount, schema_name)
-
-
-def create_source_visit_count_list_schema(root_name):
-  schema_name = root_name.split("_")[0].capitalize()
-  schema_name = f"Response{schema_name}Count"
-  return create_nested_list_schema(root_name, SourceVisitCount, schema_name)
-
-
-def create_concept_search_count_list_schema(root_name):
-  schema_name = root_name.split("_")[0].capitalize()
-  schema_name = f"Response{schema_name}Count"
-  return create_nested_list_schema(root_name, ConceptSearchCount, schema_name)
-
-
-ResponseConceptPersonCount = create_concept_person_count_list_schema
-ResponseSourcePersonCount = create_source_person_count_list_schema
-ResponseConceptVisitCount = create_concept_visit_count_list_schema
-ResponseSourceVisitCount = create_source_visit_count_list_schema
-ResponseConceptSearchCount = create_concept_search_count_list_schema
+ResponseConceptPersonCount = create_nested_list_schema("person_list", ConceptPersonCount)
+ResponseSourcePersonCount = create_nested_list_schema("person_list", SourcePersonCount)
+ResponseConceptVisitCount = create_nested_list_schema("visit_list", ConceptVisitCount)
+ResponseSourceVisitCount = create_nested_list_schema("visit_list", SourceVisitCount)
+ResponseConceptSearchCount = create_pagination_list_schema(ConceptSearchCount)
