@@ -15,22 +15,16 @@ API_CATEGORY = "Concept"
 @concept_bp.route("/index", methods=["GET"])
 @doc(
     tags=[API_CATEGORY],
-    summary="컬럼 설명",
-    description="concept 조회를 위한 keyword를 설명합니다."
+    summary="파라미터 설명",
+    description="concept 조회를 위한 파라미터들을 설명합니다."
 )
 def index():
   return ({
-      "gender": "person 테이블의 concept",
-      "race": "person 테이블의 concept",
-      "visit": "visit_occurrence 테이블의 concept",
-      "visit_type": "visit_occurrence 테이블의 concept",
-      "condition": "condition_occurrence 테이블의 concept",
-      "condition_type": "condition_occurrence 테이블의 concept",
-      "drug": "drug_exposure 테이블의 concept",
-      "drug_type": "drug_exposure 테이블의 concept",
-      "death_type": "death 테이블의 concept",
-      "page": "page index, default=1",
-      "page_cnt": "한 page에 들어갈 항목의 개수, default=10"
+      "page": "page 번호입니다. 기본은 1입니다.",
+      "length": "한 page에 들어갈 항목의 개수입니다. 기본은 10입니다.",
+      "keyword": "concept_name에서 검색할 keyword를 의미힙니다.",
+      "order_key": "정렬의 기준이 될 컬럼 값을 의미합니다.",
+      "desc": "정렬의 방식을 의미합니다. 0은 오름차순, 1은 내림차순을 의미합니다."
   }, 200)
 
 
