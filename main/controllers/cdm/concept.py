@@ -32,7 +32,7 @@ def index():
 @doc(
     tags=[API_CATEGORY],
     summary="concept 검색",
-    description="keyword로 concept를 검색합니다"
+    description="concept의 concept_name 컬럼을 keyword로 검색합니다"
 )
 @marshal_with(
     ResponseConceptSearchCount,
