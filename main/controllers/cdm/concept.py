@@ -38,7 +38,7 @@ def index():
     ResponseConceptSearchCount,
     description="""
     <pre>
-    concept_list: concept 정보가 들어갈 리스트
+    list: keyword로 검색된 concept 정보가 들어갈 리스트
     </pre>
     """
 )
