@@ -243,65 +243,33 @@ class Search():
   """
   각 테이블의 값 조회 class
 
-  with concept_id와 concept_name 매칭
-    - concept의 의미를 알 수 있게 이름을 함께 return
   with pagination
   GET 특정 컬럼 검색 기능 - 키워드 검색
   """
-  keyword_to_table = {
-      "gender": (Person, Person.person_id),
-      "race": (Person, Person.person_id),
-      "visit": (Visit, Visit.visit_occurrence_id),
-      "visit_type": (Visit, Visit.visit_occurrence_id),
-      "condition": (Condition, Condition.condition_occurrence_id),
-      "condition_type": (Condition, Condition.condition_occurrence_id),
-      "drug": (Drug, Drug.drug_exposure_id),
-      "drug_type": (Drug, Drug.drug_exposure_id),
-      "death_type": (Death, Death.person_id)
-  }
 
-  @classmethod
-  def search(cls, keyword):
-    table, primary_col = cls.keyword_to_table[keyword]
-    target_col = getattr(table, f"{keyword}_concept_id")
-    query = db.session.query(
-        target_col,
-        Concept.concept_name,
-        func.count(primary_col)
-    ).join(
-        Concept,
-        Concept.concept_id == target_col
-    ).group_by(
-        target_col,
-        Concept.concept_name
-    ).order_by(
-        func.count(primary_col).desc()
-    )
+  @staticmethod
+  def search(table, target_col, keyword, order_key=None, desc=0):
+    tokens = keyword.split(" ")
+    like_clause = "%"
+    for token in tokens:
+      like_clause += f"{token}%"
+
+    target_col = getattr(table, target_col)
+
+    if order_key is not None:
+      order_by_cluase = getattr(table, order_key)
+      if desc:
+        order_by_cluase = order_by_cluase.desc()
+      query = db.session.query(table).filter(target_col.like(like_clause)).order_by(order_by_cluase)
+    else:
+      query = db.session.query(table).filter(target_col.like(like_clause))
+
     return query
 
 
 class Concept(db.Model):
   """
   각 테이블에 사용된 concept_id를 조회하기 위한 class
-
-  person-
-    gender_concept_id: 성별
-    race_concept_id: 인종
-
-  visit_occurrence-
-    visit_concept_id: 방문 유형
-    visit_type_concept_id:
-
-  condition_occurrence-
-    condition_concet_id: 진단(병명)
-    condition_type_concept_id
-
-  drug_exposure-
-    drug_concept_id: 처방 의약품
-    drug_type_concept_id:
-
-  death-
-    death_type_concept_id
 
   with Pagination
   GET 검색 기능 - 키워드 검색
@@ -322,7 +290,12 @@ class Concept(db.Model):
   invalid_reason = db.Column(db.String(1))
 
   @classmethod
-  def get_top_concept_by_keyword(cls, keyword, page=1, page_cnt=10):
-    page = max(1, page)
-    query = Search.search(keyword)
-    return query.slice((page - 1) * page_cnt, page * page_cnt)
+  def get_top_concept_by_keyword(cls, keyword, order_key=None, desc=0, page=1, length=10):
+    query = Search.search(
+        table=cls,
+        target_col="concept_name",
+        keyword=keyword,
+        order_key=order_key,
+        desc=desc
+    )
+    return query.slice((page - 1) * length, page * length)

@@ -32,11 +32,14 @@ def index():
 
 
 @visit_bp.route("/all", methods=["GET"])
-@marshal_with(VisitCount, description="""
-<pre>
-visit_count: 전체 방문 수
-</pre>
-""")
+@marshal_with(
+    VisitCount,
+    description="""
+    <pre>
+    visit_count: 전체 방문 수
+    </pre>
+    """
+)
 @doc(
     tags=[API_CATEGORY],
     summary="전체 방문 수 조회",
@@ -50,7 +53,7 @@ def all_count():
 
 @visit_bp.route("/visit-type", methods=["GET"])
 @marshal_with(
-    ResponseConceptVisitCount("visit_list"),
+    ResponseConceptVisitCount,
     description="""
     <pre>
     visit_list: 방문 수 정보가 들어갈 리스트
@@ -82,7 +85,7 @@ def visit_type_count():
     description="성별 방문 수를 조회합니다."
 )
 @marshal_with(
-    ResponseConceptVisitCount("visit_list"),
+    ResponseConceptVisitCount,
     description="""
     <pre>
     visit_list: 방문 수 정보가 들어갈 리스트
@@ -109,7 +112,7 @@ def gender_count():
     description="인종별 방문 수를 조회합니다."
 )
 @marshal_with(
-    ResponseConceptVisitCount("visit_list"),
+    ResponseConceptVisitCount,
     description="""
     <pre>
     visit_list: 방문 수 정보가 들어갈 리스트
@@ -136,7 +139,7 @@ def race_count():
     description="민족별 방문 수를 조회합니다."
 )
 @marshal_with(
-    ResponseSourceVisitCount("visit_list"),
+    ResponseSourceVisitCount,
     description="""
     <pre>
     visit_list: 방문 수 정보가 들어갈 리스트
@@ -167,7 +170,7 @@ def ethnicity_count():
     description="방문시 연령대(10세 단위)별 방문 수를 조회합니다."
 )
 @marshal_with(
-    ResponseSourceVisitCount("visit_list"),
+    ResponseSourceVisitCount,
     description="""
     <pre>
     visit_list: 방문 수 정보가 들어갈 리스트

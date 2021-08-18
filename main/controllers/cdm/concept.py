@@ -41,13 +41,10 @@ def index():
     description="keyword로 concept를 검색합니다"
 )
 @marshal_with(
-    ResponseConceptSearchCount("concept_list"),
+    ResponseConceptSearchCount,
     description="""
     <pre>
     concept_list: concept 정보가 들어갈 리스트
-      .concept_id: Concept ID
-      .concept_name: Concept 이름
-      .row_count: 해당 concept가 사용된 row 수
     </pre>
     """
 )
@@ -55,15 +52,29 @@ def index():
     RequestSearch,
     location="query"
 )
-def concept_keyword_search(**kwargs):
-  page = kwargs.get("page", 1)
-  page_cnt = kwargs.get("page_cnt", 10)
-  keyword = kwargs.get("keyword", "gender")
-  query = Concept.get_top_concept_by_keyword(keyword, page, page_cnt)
-
+def concept_keyword_search(page, length, keyword, order_key, desc):
+  query = Concept.get_top_concept_by_keyword(
+      keyword=keyword, 
+      order_key=order_key,
+      desc=desc,
+      page=page,
+      length=length
+  )
   return {
-      "concept_list": convert_query_to_response(
-          ("concept_id", "concept_name", "row_count"),
-          query.all()
-      )
+      "list": convert_query_to_response(
+          (
+              "concept_id",
+              "concept_name",
+              "domain_id",
+              "vocabulary_id",
+              "concept_class_id",
+              "standard_concept"
+          ),
+          query.all(),
+          Concept
+      ),
+      "keyword": keyword,
+      "page": page,
+      "order_key": order_key,
+      "desc": desc
   }
