@@ -1,4 +1,5 @@
 from sqlalchemy import cast, func, extract, Integer
+from sqlalchemy.sql.expression import select
 from main import app, db
 
 
@@ -247,22 +248,65 @@ class Search():
   GET 특정 컬럼 검색 기능 - 키워드 검색
   """
 
-  @staticmethod
-  def search(table, target_col, keyword, order_key=None, desc=0):
+  def _get_like_clause(keyword):
     tokens = keyword.split(" ")
     like_clause = "%"
     for token in tokens:
       like_clause += f"{token}%"
 
-    target_col = getattr(table, target_col)
+    return like_clause
 
-    if order_key is not None:
-      order_by_cluase = getattr(table, order_key)
-      if desc:
-        order_by_cluase = order_by_cluase.desc()
-      query = db.session.query(table).filter(target_col.like(like_clause)).order_by(order_by_cluase)
+  def _get_search_query(query, target_col, like_clause, order_by_clause=None):
+    if order_by_clause is not None:
+      query = query.filter(target_col.like(like_clause)).order_by(order_by_clause)
     else:
-      query = db.session.query(table).filter(target_col.like(like_clause))
+      query = query.filter(target_col.like(like_clause))
+
+    return query
+
+  @classmethod
+  def search(cls, table, target_col, keyword, order_key=None, desc=0):
+    like_clause = cls._get_like_clause(keyword)
+    target_col = getattr(table, target_col)
+    order_by_clause = None
+    if order_key is not None:
+      order_by_clause = getattr(table, order_key)
+      if desc:
+        order_by_clause = order_by_clause.desc()
+
+    query = db.session.query(table)
+    query = cls._get_search_query(query, target_col, like_clause, order_by_clause)
+
+    return query
+
+  @classmethod
+  def target_column_search(cls, table, target_col, keyword, order_key=None, desc=0):
+    target_col = getattr(table, target_col)
+    like_clause = cls._get_like_clause(keyword)
+    order_by_clause = None
+    if order_key is not None:
+      order_by_clause = getattr(table, order_key)
+      if desc:
+        order_by_clause = order_by_clause.desc()
+    query = db.session.query(
+        target_col.label("concept_id"),
+        Concept.concept_name.label("concept_name")
+    ).join(
+        Concept,
+        Concept.concept_id == target_col
+    )
+    query = cls._get_search_query(
+        query=query,
+        target_col=Concept.concept_name,
+        like_clause=like_clause,
+        order_by_clause=order_by_clause
+    )
+    subq = query.subquery()
+    query = db.session.query(
+        subq.c.concept_id,
+        subq.c.concept_name,
+        func.count(subq.c.concept_id)
+    ).group_by(subq.c.concept_id, subq.c.concept_name)
 
     return query
 

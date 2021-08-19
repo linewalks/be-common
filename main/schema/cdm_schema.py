@@ -12,6 +12,10 @@ class RequestSearch(RequestPagination):
   desc = fields.Int(description="정렬 방식을 말합니다. (0: 오름차순, 1: 내림차순)", missing=0)
 
 
+class RequestTableSearch(RequestSearch):
+  target_column = fields.Str(description="검색할 컬럼입니다", required=True)
+
+
 # Response
 class PersonCount(Schema):
   person_count = fields.Int(description="환자 수")
@@ -33,6 +37,7 @@ class ConceptInfo(Schema):
   vocabulary_id = fields.Str()
   concept_class_id = fields.Str()
   standard_concept = fields.Str()
+  row_count = fields.Str()
 
 
 class Source(Schema):
