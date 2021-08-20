@@ -1,13 +1,20 @@
-from flask_apispec import doc, marshal_with, use_kwargs
+from flask import current_app as app
+from flask_apispec import use_kwargs, marshal_with, doc
 from flask_jwt_extended import (
-    create_access_token,
-    get_jwt,
+    jwt_required,
     get_jwt_identity,
-    jwt_required
+    create_access_token,
+    get_jwt
 )
 # main에서 auth 호출 후 auth에서 user 호출
-from main import app, db, jwt
-from main.controllers.auth import API_CATEGORY, auth_bp, authorization_header
+from main.controllers.auth import auth_bp, API_CATEGORY, authorization_header
+from main import db, jwt
+from main.schema import (
+    ResponseLoginSchema,
+    RequestLoginSchema,
+    ResponseAccessTokenSchema
+)
+from main.models.user import User, TokenBlacklist
 from main.models.common.message import (
     ResponseMessage,
     ERROR_NULL_EMAIL,
@@ -19,12 +26,7 @@ from main.models.common.message import (
     SUCCESS_SIGNUP,
     SUCCESS_LOGOUT
 )
-from main.models.user import User, TokenBlacklist
-from main.schema import (
-    ResponseLoginSchema,
-    RequestLoginSchema,
-    ResponseAccessTokenSchema
-)
+
 
 
 @jwt.token_in_blocklist_loader

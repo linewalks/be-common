@@ -61,8 +61,7 @@ def concept_keyword_search(page, length, keyword, order_key, desc):
               "concept_name",
               "domain_id",
               "vocabulary_id",
-              "concept_class_id",
-              "standard_concept"
+              "concept_class_id"
           ),
           query.all(),
           Concept

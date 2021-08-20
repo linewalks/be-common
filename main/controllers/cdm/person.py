@@ -47,7 +47,7 @@ def index():
 def all_count():
   return {
       "person_count": db.session.query(Person).count()
-  }
+  }, 200
 
 
 @person_bp.route("/gender", methods=["GET"])

@@ -1,4 +1,5 @@
-from main import app, db
+from flask import current_app as app
+from main import db
 
 t_test_log = db.Table(
     "test",

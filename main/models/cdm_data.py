@@ -1,5 +1,6 @@
+from flask import current_app as app
 from sqlalchemy import cast, func, extract, Integer
-from main import app, db
+from main import db
 
 
 # 생각해보니 굳이 Class가 아니어도 될 거 같긴 하다.
